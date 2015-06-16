@@ -7,10 +7,7 @@
       books: React.PropTypes.array.isRequired
     },
     getInitialState: function () {
-      return {
-        author: this.props.data[0],
-        books: this.props.data[0].books
-      };
+      return this.props.data.selectGame();
     },
     render: function () {
       return <div>
@@ -34,7 +31,7 @@
       title: React.PropTypes.string.isRequired
     },
     render: function () {
-      return <div><h4>{this.props.title}</h4></div>;
+      return <div className="answer"><h4>{this.props.title}</h4></div>;
     }
   })
 
@@ -56,7 +53,24 @@
       imageAttribution: 'Daniel Ogren',
       books: ['Harry Potter and the Sourcerers Stone', 'Harry Potter and the Chamber of Secrets']
     }
-  ]
+  ];
+
+  data.selectGame = function () {
+    var books = _.shuffle(this.reduce(function (p, c, i) {
+      return p.concat(c.books);
+    }, [])).slice(0,4);
+
+    var answer = books[_.random(books.length-1)];
+
+    return {
+      books: books,
+      author: _.find(this, function (author) {
+        return author.books.some(function (title) {
+          return title === answer;
+        });
+      })
+    };
+  };
 
   React.render(<Quiz data={data} />, 
     document.getElementById('app'));
