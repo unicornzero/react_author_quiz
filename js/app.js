@@ -22,6 +22,9 @@
     handleContinue: function (title) {
       this.setState(this.getInitialState());
     },
+    handleAddGame: function (title) {
+      routie('add');
+    },
     render: function () {
       return (<div>
           <div className="row">
@@ -38,10 +41,15 @@
           {this.state.showContinue? (
             <div className="row">
               <div className="col-md-12">
-                <input onClick={this.handleContinue} type="button" value="Next Quiz" class="btn "/>
+                <input onClick={this.handleContinue} type="button" value="Next Quiz" className="btn " />
               </div>
             </div>) : <span/>
           }
+          <div className="row">
+            <div className="col-md-12">
+              <input onClick={this.handleAddGame} type="button" value="Add Game" className="btn " />
+            </div>
+          </div>
         </div>);
     }
   });
@@ -58,7 +66,42 @@
                 <h4>{this.props.title}</h4>
               </div>;
     }
-  })
+  });
+
+  var AddGameForm = React.createClass({
+    propTypes: {
+      onGameFormSubmitted: React.PropTypes.func.isRequired
+    },
+    handleSubmit: function () {
+      this.props.onGameFormSubmitted(getRefs(this));
+      return false;
+    },
+    render: function () {
+      return <div className="row">
+        <div className="col-md-12">
+          <h1>AddGame</h1>
+          <form role="form" onSubmit={this.handleSubmit}>
+            <div className="form-group">
+              <input ref="imageUrl" type="text" className="form-content" placeholder="Image URL" />
+            </div>
+            <div className="form-group">
+              <input ref="answer1" type="text" className="form-content" placeholder="answer 1" />
+            </div>
+            <div className="form-group">
+              <input ref="answer2" type="text" className="form-content" placeholder="answer 2" />
+            </div>
+            <div className="form-group">
+              <input ref="answer3" type="text" className="form-content" placeholder="answer 3" />
+            </div>
+            <div className="form-group">
+              <input ref="answer4" type="text" className="form-content" placeholder="answer 4" />
+            </div>
+            <button type="submit" className="btn btn-default">Submit</button>
+          </form>
+        </div>
+      </div>;
+    }
+  });
 
   var data = [
     {
@@ -80,7 +123,7 @@
     }
   ];
 
-  data.selectGame = function () {
+  var selectGame = function () {
     var books = _.shuffle(this.reduce(function (p, c, i) {
       return p.concat(c.books);
     }, [])).slice(0,4);
@@ -103,7 +146,35 @@
     };
   };
 
-  React.render(<Quiz data={data} />, 
-    document.getElementById('app'));
+  data.selectGame = selectGame;
+
+  routie({
+    '': function () {
+      React.render(<Quiz data={data} />, 
+        document.getElementById('app'));
+    },
+    'add': function () {
+      React.render(<AddGameForm onGameFormSubmitted={handleAddGameFormSubmitted} />,
+        document.getElementById('app'))
+    }
+  })
+
+  function handleAddGameFormSubmitted(data) {
+    var quizData = [{
+      imageUrl: data.imageUrl,
+      books: [data.answer1, data.answer2, data.answer3, data.answer4]
+    }];
+    quizData.selectGame = selectGame;
+    React.render(<Quiz data={quizData} />,
+      document.getElementById('app'));
+  }
+
+  function getRefs(component) {
+    var result = {};
+    Object.keys(component.refs).forEach(function (refName) {
+      result[refName] = component.refs[refName].getDOMNode().value;
+    });
+    return result;
+  }
 
 })();
